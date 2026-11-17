@@ -47,6 +47,5 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Credenciais e configuração do Firebase (não versionar)
+# Credenciais do Firebase (nunca versionar)
 android/app/google-services.json
-*firebase-adminsdk*.json
