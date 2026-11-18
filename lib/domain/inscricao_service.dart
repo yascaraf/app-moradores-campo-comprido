@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'entidades.dart';
+import 'mensagens.dart';
 import 'repositorios.dart';
 
 /// Tipos de resultado possíveis das operações de inscrição.
@@ -29,8 +32,7 @@ class ResultadoOperacao {
 /// Regras de negócio da inscrição (RF06) e do cancelamento (RF07).
 /// Não conhece o Firebase: só fala com os contratos de repositorios.dart.
 class InscricaoService {
-  static const String msgFalha =
-      'Não foi possível concluir. Verifique sua internet e tente de novo.';
+  static const String msgFalha = Mensagens.falhaTecnica;
 
   static const List<String> _dias = [
     'segunda-feira',
@@ -61,7 +63,7 @@ class InscricaoService {
     if (usuarioId == null || usuarioId.isEmpty) {
       return const ResultadoOperacao(
         TipoResultado.semLogin,
-        'Você precisa entrar na sua conta para se inscrever. Toque em Entrar.',
+        Mensagens.semLoginInscrever,
       );
     }
     try {
@@ -69,8 +71,7 @@ class InscricaoService {
       if (acao == null || acao.status != StatusAcao.aberta) {
         return const ResultadoOperacao(
           TipoResultado.acaoIndisponivel,
-          'Esta ação não está mais aberta para inscrições. '
-          'Toque em Ver outras ações.',
+          Mensagens.acaoIndisponivel,
         );
       }
 
@@ -78,7 +79,7 @@ class InscricaoService {
       if (existente != null && existente.status == StatusInscricao.ativa) {
         return const ResultadoOperacao(
           TipoResultado.jaRegistrada,
-          'Participação já registrada. Você já está inscrito nesta ação.',
+          Mensagens.participacaoDuplicada,
         );
       }
 
@@ -93,8 +94,15 @@ class InscricaoService {
         existente == null ? TipoResultado.confirmada : TipoResultado.reativada,
         _mensagemConfirmacao(acao),
       );
-    } catch (_) {
-      return const ResultadoOperacao(TipoResultado.falha, msgFalha);
+    } catch (e, s) {
+      // O detalhe técnico vai só para o log do desenvolvedor.
+      // O usuário recebe apenas a mensagem padrão, sem texto técnico (RNF02).
+      log('Falha técnica no serviço de inscrição',
+          name: 'InscricaoService', error: e, stackTrace: s);
+      return const ResultadoOperacao(
+        TipoResultado.falha,
+        Mensagens.falhaTecnica,
+      );
     }
   }
 
@@ -107,7 +115,7 @@ class InscricaoService {
     if (usuarioId == null || usuarioId.isEmpty) {
       return const ResultadoOperacao(
         TipoResultado.semLogin,
-        'Você precisa entrar na sua conta para cancelar. Toque em Entrar.',
+        Mensagens.semLoginCancelar,
       );
     }
     try {
@@ -115,7 +123,7 @@ class InscricaoService {
       if (existente == null || existente.status != StatusInscricao.ativa) {
         return const ResultadoOperacao(
           TipoResultado.inscricaoNaoEncontrada,
-          'Não encontramos uma inscrição ativa sua nesta ação.',
+          Mensagens.inscricaoNaoEncontrada,
         );
       }
 
@@ -128,20 +136,28 @@ class InscricaoService {
 
       return const ResultadoOperacao(
         TipoResultado.cancelada,
-        'Inscrição cancelada. Você pode se inscrever de novo quando quiser.',
+        Mensagens.inscricaoCancelada,
       );
-    } catch (_) {
-      return const ResultadoOperacao(TipoResultado.falha, msgFalha);
+    } catch (e, s) {
+      // O detalhe técnico vai só para o log do desenvolvedor.
+      // O usuário recebe apenas a mensagem padrão, sem texto técnico (RNF02).
+      log('Falha técnica no serviço de inscrição',
+          name: 'InscricaoService', error: e, stackTrace: s);
+      return const ResultadoOperacao(
+        TipoResultado.falha,
+        Mensagens.falhaTecnica,
+      );
     }
   }
 
   String _mensagemConfirmacao(Acao acao) {
     final d = acao.dataHora;
-    final dia = _dias[d.weekday - 1];
-    final data = '${_dois(d.day)}/${_dois(d.month)}/${d.year}';
-    final hora = '${_dois(d.hour)}:${_dois(d.minute)}';
-    return 'Inscrição confirmada! Você está inscrito no ${acao.titulo}, '
-        '$dia, $data, às $hora.';
+    return Mensagens.inscricaoConfirmada(
+      titulo: acao.titulo,
+      dia: _dias[d.weekday - 1],
+      data: '${_dois(d.day)}/${_dois(d.month)}/${d.year}',
+      hora: '${_dois(d.hour)}:${_dois(d.minute)}',
+    );
   }
 
   String _dois(int n) => n.toString().padLeft(2, '0');
