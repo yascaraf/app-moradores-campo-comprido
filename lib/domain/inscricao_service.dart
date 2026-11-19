@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'entidades.dart';
 import 'mensagens.dart';
 import 'repositorios.dart';
@@ -94,11 +92,7 @@ class InscricaoService {
         existente == null ? TipoResultado.confirmada : TipoResultado.reativada,
         _mensagemConfirmacao(acao),
       );
-    } catch (e, s) {
-      // O detalhe técnico vai só para o log do desenvolvedor.
-      // O usuário recebe apenas a mensagem padrão, sem texto técnico (RNF02).
-      log('Falha técnica no serviço de inscrição',
-          name: 'InscricaoService', error: e, stackTrace: s);
+    } catch (_) {
       return const ResultadoOperacao(
         TipoResultado.falha,
         Mensagens.falhaTecnica,
@@ -138,15 +132,26 @@ class InscricaoService {
         TipoResultado.cancelada,
         Mensagens.inscricaoCancelada,
       );
-    } catch (e, s) {
-      // O detalhe técnico vai só para o log do desenvolvedor.
-      // O usuário recebe apenas a mensagem padrão, sem texto técnico (RNF02).
-      log('Falha técnica no serviço de inscrição',
-          name: 'InscricaoService', error: e, stackTrace: s);
+    } catch (_) {
       return const ResultadoOperacao(
         TipoResultado.falha,
         Mensagens.falhaTecnica,
       );
+    }
+  }
+
+  /// Diz se o usuário já tem inscrição ativa na ação. A tela usa isso para
+  /// escolher entre Inscrever-se e Cancelar inscrição.
+  Future<bool> temInscricaoAtiva({
+    required String? usuarioId,
+    required String acaoId,
+  }) async {
+    if (usuarioId == null || usuarioId.isEmpty) return false;
+    try {
+      final existente = await inscricoes.buscar(acaoId, usuarioId);
+      return existente != null && existente.status == StatusInscricao.ativa;
+    } catch (_) {
+      return false;
     }
   }
 
