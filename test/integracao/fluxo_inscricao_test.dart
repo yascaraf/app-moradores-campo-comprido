@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:app_moradores_campo_comprido/data/repositorios_em_memoria.dart';
 import 'package:app_moradores_campo_comprido/domain/entidades.dart';
 import 'package:app_moradores_campo_comprido/domain/inscricao_service.dart';
-import 'repositorios_em_memoria.dart';
 
 void main() {
   late AcaoRepositorioEmMemoria acoes;

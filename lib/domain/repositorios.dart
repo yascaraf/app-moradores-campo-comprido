@@ -5,6 +5,9 @@ import 'entidades.dart';
 abstract class AcaoRepositorio {
   /// Devolve a ação ou null se ela não existir.
   Future<Acao?> buscarPorId(String id);
+
+  /// Devolve todas as ações, em qualquer status e sem ordem definida.
+  Future<List<Acao>> listar();
 }
 
 /// Contrato para ler e gravar inscrições.
